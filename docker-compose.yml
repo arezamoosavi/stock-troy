@@ -1,63 +1,55 @@
-version: "3"
-
-volumes:
-  minio-data: {}
+version: "2"
 
 services:
-  data:
-    build:
-      context: .
-      dockerfile: ./src/Dockerfile
-    volumes:
-      - ./src:/opt/project
-    ports:
-      - 4040:4040
-      - 7077:7077
-      - 8081:8081
-      - 8080:8080
-      - 18080:18080
-      - 5050:5050
-    environment:
-      - AIRFLOW_HOME=/project
-
-    restart: unless-stopped
-    command: sh /run.sh
-  # minio:
-  #   image: minio/minio:RELEASE.2020-09-10T22-02-45Z
-  #   hostname: minio
+  # data:
+  #   build:
+  #     context: .
+  #     dockerfile: ./src/Dockerfile
   #   volumes:
-  #     - minio-data:/export
+  #     - ./src:/opt/project
   #   ports:
-  #     - "9000:9000"
+  #     - 4040:4040
+  #     - 7077:7077
+  #     - 8081:8081
+  #     - 8080:8080
+  #     - 18080:18080
+  #     - 5050:5050
   #   environment:
-  #     MINIO_ACCESS_KEY: AKIAIOSFODNN7EXAMPLE
-  #     MINIO_SECRET_KEY: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
-  #   command: server http://minio/export
-  # namenode:
-  #   image: bde2020/hadoop-namenode:2.0.0-hadoop3.1.1-java8
-  #   container_name: namenode
-  #   environment:
-  #     - CLUSTER_NAME=test
-  #     - CORE_CONF_fs_defaultFS=hdfs://namenode:8020
-  #   env_file:
-  #     - ./hadoop-hive.env
-  #   ports:
-  #     - 50070:50070
-  # datanode:
-  #   image: bde2020/hadoop-datanode:2.0.0-hadoop3.1.1-java8
-  #   container_name: datanode
-  #   depends_on:
-  #     - namenode
-  #   environment:
-  #     - CORE_CONF_fs_defaultFS=hdfs://namenode:8020
-  #   env_file:
-  #     - ./hadoop-hive.env
-  #   ports:
-  #     - 50075:50075
-  # hue:
-  #   image: bde2020/hdfs-filebrowser:3.11
-  #   container_name: hue
-  #   ports:
-  #     - 8088:8088
-  #   environment:
-  #     - NAMENODE_HOST=namenode
+  #     - AIRFLOW_HOME=/project
+  #   restart: unless-stopped
+  #   command: sh /run.sh
+  minio:
+    image: "bitnami/minio:latest"
+    ports:
+      - "9000:9000"
+    environment:
+      - MINIO_ACCESS_KEY=minio-access-key
+      - MINIO_SECRET_KEY=minio-secret-key
+  namenode:
+    image: bde2020/hadoop-namenode:1.1.0-hadoop2.8-java8
+    container_name: namenode
+    volumes:
+      - ./data/namenode:/hadoop/dfs/name
+    environment:
+      - CLUSTER_NAME=test
+    env_file:
+      - ./hadoop.env
+    ports:
+      - 50070:50070
+  datanode:
+    image: bde2020/hadoop-datanode:1.1.0-hadoop2.8-java8
+    depends_on:
+      - namenode
+    volumes:
+      - ./data/datanode:/hadoop/dfs/data
+    env_file:
+      - ./hadoop.env
+    ports:
+      - 50075:50075
+  hue:
+    image: bde2020/hdfs-filebrowser:3.11
+    container_name: hue
+    ports:
+      - 8088:8088
+    environment:
+      - NAMENODE_HOST=namenode

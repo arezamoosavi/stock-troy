@@ -67,9 +67,9 @@ RUN tar -xzvf hadoop-3.2.1.tar.gz
 RUN mv hadoop-3.2.1 /opt/hadoop
 
 # install spark
-RUN wget --no-verbose https://downloads.apache.org/spark/spark-2.4.6/spark-2.4.6-bin-hadoop2.7.tgz
-RUN tar -xzvf spark-2.4.6-bin-hadoop2.7.tgz
-RUN mv spark-2.4.6-bin-hadoop2.7 /opt/spark
+RUN wget --no-verbose https://downloads.apache.org/spark/spark-2.4.7/spark-2.4.7-bin-hadoop2.7.tgz
+RUN tar -xzvf spark-2.4.7-bin-hadoop2.7.tgz
+RUN mv spark-2.4.7-bin-hadoop2.7 /opt/spark
 
 ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
 ENV PATH=$PATH:$JAVA_HOME/bin
@@ -90,7 +90,7 @@ ENV MAVEN_HOME=/opt/maven
 ENV PATH=$PATH:$MAVEN_HOME/bin
 RUN mvn --version
 
-RUN rm -rf scala-2.11.8.tgz spark-2.4.6-bin-hadoop2.7.tgz sbt-0.13.13.tgz \
+RUN rm -rf scala-2.11.8.tgz spark-2.4.7-bin-hadoop2.7.tgz sbt-0.13.13.tgz \
     apache-maven-3.6.0-bin.tar.gz hadoop-3.2.1.tar.gz
 
 ENV HADOOP_HOME=/opt/hadoop
@@ -106,6 +106,10 @@ RUN mkdir -p /opt/spark/history
 COPY src/spark-defaults.conf /opt/spark/conf/spark-defaults.conf
 
 #Workiingg
+
+COPY src/requirements.txt requirements.txt
+RUN pip3 install --no-cache-dir -r requirements.txt
+
 
 RUN mkdir -p /opt/project
 COPY ./src/main ./opt/project
