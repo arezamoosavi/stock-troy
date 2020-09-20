@@ -93,6 +93,9 @@ RUN mvn --version
 RUN rm -rf scala-2.11.8.tgz spark-2.4.7-bin-hadoop2.7.tgz sbt-0.13.13.tgz \
     apache-maven-3.6.0-bin.tar.gz hadoop-3.2.1.tar.gz
 
+RUN pip3 install pyspark
+ENV PYSPARK_PYTHON=/usr/bin/python3
+
 ENV HADOOP_HOME=/opt/hadoop
 ENV HADOOP_CONF_DIR=$HADOOP_HOME/etc/hadoop
 ENV PATH=$PATH:$HADOOP_HOME/bin
@@ -110,9 +113,8 @@ COPY src/spark-defaults.conf /opt/spark/conf/spark-defaults.conf
 COPY src/requirements.txt requirements.txt
 RUN pip3 install --no-cache-dir -r requirements.txt
 
-
 RUN mkdir -p /opt/project
-COPY ./src/main ./opt/project
+COPY ./src/main/dags ./opt/project
 COPY src/airflow.cfg /opt/project/airflow.cfg
 
 COPY src/run.sh /run.sh
