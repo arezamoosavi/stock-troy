@@ -1,0 +1,5 @@
+{
+    "airflow_home": "/opt/project",
+    "hdfs_path": "stock_data/",
+    "hdfs_master": "hdfs://namenode:8020"
+}
