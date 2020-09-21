@@ -4,7 +4,7 @@ from airflow import DAG
 from airflow.operators.bash_operator import BashOperator
 from airflow.operators.python_operator import PythonOperator
 
-from etl.hourly_stock_collector import create_hourly_stock_etl
+from dags.etl.hourly_stock_collector import create_hourly_stock_etl, say_hi
 
 logger = logging.getLogger(__name__)
 logger.setLevel("WARNING")
@@ -20,7 +20,7 @@ dag = DAG(
     dag_id="daily_gather_stock_data",
     default_args=args,
     schedule_interval="@daily",
-    max_active_runs=10,
+    max_active_runs=1,
 )
 
 
@@ -36,6 +36,18 @@ run_gather_stock = PythonOperator(
 )
 
 run_gather_stock
+
+
+new_dag = DAG(
+    dag_id="for_say_hi",
+    default_args=args,
+    schedule_interval="@hourly",
+    max_active_runs=1,
+)
+
+run_hi = PythonOperator(task_id="Say_HI", python_callable=say_hi, dag=new_dag,)
+
+run_hi
 
 
 # stock_etl = BashOperator(
