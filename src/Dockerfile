@@ -81,7 +81,7 @@ RUN pip install pyspark
 
 RUN mkdir -p /opt/spark/history
 COPY src/spark-defaults.conf /opt/spark/conf/spark-defaults.conf
-# ENV PYTHONPATH=$SPARK_HOME/python:$SPARK_HOME/python/lib/py4j-0.10.7-src.zip:$PYTHONPATH
+ENV PYTHONPATH=$SPARK_HOME/python:$SPARK_HOME/python/lib/py4j-0.10.7-src.zip:$PYTHONPATH
 
 #Workiingg
 COPY src/requirements.txt requirements.txt
