@@ -2,10 +2,18 @@ import sys
 import os
 import json
 import logging
-import requests
+import subprocess
+import time
 
-from pyspark import SparkContext, SparkConf
+from pyspark.sql import SparkSession
+from pyspark import SparkConf
 from datetime import datetime
+
+try:
+    import requests
+except ImportError:
+    subprocess.check_call(["pip", "install", "requests"])
+    import requests
 
 url = "https://financialmodelingprep.com/api/v3/quote-short/TSLA?apikey=71641ac9883a086f82d5e14f86025c0c"
 
@@ -16,16 +24,21 @@ logger.setLevel("WARNING")
 def create_hourly_stock_etl(hdfs_master, hdfs_path, run_time, **kwargs):
     conf = SparkConf()
     conf.setAppName("Hourly Stock")
-    spark = SparkContext.builder.config(conf=conf).getOrCreate()
+    spark = (
+        SparkSession.builder.master("spark://app:7077").config(conf=conf).getOrCreate()
+    )
 
     logger.warning("The report of " + run_time + " is started to generate!")
-    resp = requests.get(url=url)
-    data = resp.json()
 
-    json_object = json.dumps(data, indent=4)
+    resp = requests.get(url=url)
+    time.sleep(5)
+    data = resp.json()
+    logger.info(data)
+
+    json_object = json.dumps(data[0])
     logger.info(json_object)
 
-    _df = spark.read.json(json_object)
+    _df = spark.read.json(data)
     _df.printSchema()
 
     save_path = os.path.join(*[hdfs_master, hdfs_path, "tesla_stock_data.csv"])

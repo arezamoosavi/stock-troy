@@ -24,7 +24,7 @@ def respond():
 
 def spark_task():
 
-    spark = SparkSession.builder.master("local").getOrCreate()
+    spark = SparkSession.builder.master("spark://app:7077").getOrCreate()
     sc = spark.sparkContext
 
     # Sum of the first 100 whole numbers
@@ -36,8 +36,8 @@ def spark_task():
     return "Done!"
 
 
-def check_if_data_exist(ds, data_path,**kwargs):
-    
+def check_if_data_exist(ds, data_path, **kwargs):
+
     hd_hook = webhdfs_hook.WebHDFSHook()
     path = os.path.join(*["/", data_path])
     logger.info("Check wheater data is in path or not" + path)

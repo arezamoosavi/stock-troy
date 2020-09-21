@@ -74,14 +74,14 @@ RUN rm -rf sbt-0.13.13.tgz
 ENV SBT_HOME=/opt/sbt
 ENV PATH=$PATH:$SBT_HOME/bin
 
-RUN sbt sbtVersion
+# RUN sbt sbtVersion
 
 RUN pip install pyspark
-ENV PYSPARK_PYTHON=/usr/bin/python3
+# ENV PYSPARK_PYTHON=/usr/bin/python3
 
 RUN mkdir -p /opt/spark/history
 COPY src/spark-defaults.conf /opt/spark/conf/spark-defaults.conf
-ENV PYTHONPATH=$SPARK_HOME/python:$SPARK_HOME/python/lib/py4j-0.10.7-src.zip:$PYTHONPATH
+# ENV PYTHONPATH=$SPARK_HOME/python:$SPARK_HOME/python/lib/py4j-0.10.7-src.zip:$PYTHONPATH
 
 #Workiingg
 COPY src/requirements.txt requirements.txt
