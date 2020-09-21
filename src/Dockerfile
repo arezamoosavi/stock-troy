@@ -1,5 +1,13 @@
 FROM python:3.7-stretch
 
+RUN apt-get update -y && apt-get install -y libzbar-dev bash gcc git libc-dev curl wget vim nano \
+    && apt-get install -y ranger caca-utils highlight atool w3m poppler-utils mediainfo \
+    && apt-get install -y iputils-ping telnet openssh-client net-tools \
+    man unzip vim-tiny bc openssh-server thrift-compiler netcat sudo \
+    && apt-get install -y build-essential \
+    && apt-get autoremove -y \
+    && apt-get clean
+
 # Install OpenJDK 8
 RUN \
     apt-get update && \
@@ -8,7 +16,6 @@ RUN \
 
 ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
 ENV PATH=$PATH:$JAVA_HOME/bin
-
 
 # install scala
 RUN wget --no-verbose https://downloads.lightbend.com/scala/2.11.8/scala-2.11.8.tgz
@@ -19,17 +26,6 @@ RUN rm -rf scala-2.11.8.tgz
 
 ENV SCALA_HOME=/opt/scala
 ENV PATH=$PATH:$SCALA_HOME/bin
-
-#install sbt
-RUN wget --no-verbose https://dl.bintray.com/sbt/native-packages/sbt/0.13.13/sbt-0.13.13.tgz
-RUN tar -xzvf sbt-0.13.13.tgz
-RUN mv sbt-launcher-packaging-0.13.13 /opt/sbt
-RUN rm -rf sbt-0.13.13.tgz
-
-ENV SBT_HOME=/opt/sbt
-ENV PATH=$PATH:$SBT_HOME/bin
-
-RUN sbt sbtVersion
 
 #Install hadoop
 RUN wget https://downloads.apache.org/hadoop/core/hadoop-3.2.1/hadoop-3.2.1.tar.gz
@@ -69,6 +65,17 @@ ENV MAVEN_HOME=/opt/maven
 ENV PATH=$PATH:$MAVEN_HOME/bin
 RUN mvn --version
 
+#install sbt
+RUN wget --no-verbose https://dl.bintray.com/sbt/native-packages/sbt/0.13.13/sbt-0.13.13.tgz
+RUN tar -xzvf sbt-0.13.13.tgz
+RUN mv sbt-launcher-packaging-0.13.13 /opt/sbt
+RUN rm -rf sbt-0.13.13.tgz
+
+ENV SBT_HOME=/opt/sbt
+ENV PATH=$PATH:$SBT_HOME/bin
+
+RUN sbt sbtVersion
+
 RUN pip install pyspark
 ENV PYSPARK_PYTHON=/usr/bin/python3
 
@@ -77,7 +84,6 @@ COPY src/spark-defaults.conf /opt/spark/conf/spark-defaults.conf
 ENV PYTHONPATH=$SPARK_HOME/python:$SPARK_HOME/python/lib/py4j-0.10.7-src.zip:$PYTHONPATH
 
 #Workiingg
-
 COPY src/requirements.txt requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 

@@ -22,7 +22,7 @@ dag = DAG(
 
 stock_etl = BashOperator(
     task_id="stock_report",
-    bash_command="spark-submit --master spark://spark:7077 "
+    bash_command="spark-submit --master spark://app:7077 "
     "--deploy-mode client "
     "--verbose "
     "/opt/project/dags/etl/hourly_stock_collector.py "
