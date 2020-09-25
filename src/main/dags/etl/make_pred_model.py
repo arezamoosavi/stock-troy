@@ -29,6 +29,14 @@ def develop_pred_model(hdfs_master, hdfs_path, run_time, **kwargs):
     _df.show()
     _df.printSchema()
 
+    logger.info("df to pandas:")
+    pd = _df.toPandas()
+
+    logger.info("SHAPE is: ")
+    logger.info(f"{pd.shape}")
+    logger.info(f"{pd.info()}")
+    
+
     return "Done!"
 
 
