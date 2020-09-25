@@ -5,6 +5,7 @@ from airflow.operators.bash_operator import BashOperator
 from airflow.operators.python_operator import PythonOperator
 
 from dags.etl.hourly_stock_collector import create_hourly_stock_etl, say_hi
+from dags.etl.make_pred_model import develop_pred_model
 
 logger = logging.getLogger(__name__)
 logger.setLevel("WARNING")
@@ -36,6 +37,28 @@ run_gather_stock = PythonOperator(
 )
 
 run_gather_stock
+
+
+ml_dag = DAG(
+    dag_id="daily_ml_stock_data",
+    default_args=args,
+    schedule_interval="@daily",
+    max_active_runs=1,
+)
+
+
+pred_stock_model = PythonOperator(
+    task_id="create_hourly_stock_etl",
+    python_callable=develop_pred_model,
+    op_kwargs={
+        "hdfs_master": "{{var.value.hdfs_master}}",
+        "hdfs_path": "{{var.value.hdfs_path}}",
+        "run_time": "{{yesterday_ds}}",
+    },
+    dag=ml_dag,
+)
+
+pred_stock_model
 
 
 new_dag = DAG(
