@@ -30,12 +30,16 @@ def develop_pred_model(hdfs_master, hdfs_path, run_time, **kwargs):
     _df.printSchema()
 
     logger.info("df to pandas:")
-    pd = _df.toPandas()
+    pd_df = _df.toPandas()
+    pd_df.dropna(inplace=True)
+    # pd_df["date"] = pd_df.to_datetime(pd_df.date)
+    pd_df.sort_values(by=["date"], inplace=True, ascending=True)
+    pd_df.reset_index(inplace=True)
 
     logger.info("SHAPE is: ")
-    logger.info(f"{pd.shape}")
-    logger.info(f"{pd.info()}")
-    
+    logger.info(pd_df.shape)
+    logger.info(pd_df)
+    logger.info(pd_df.describe())
 
     return "Done!"
 
@@ -49,4 +53,3 @@ if __name__ == "__main__":
     develop_pred_model(
         hdfs_master=hdfs_master, hdfs_path=hdfs_path, run_time=run_time,
     )
-

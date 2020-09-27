@@ -2,19 +2,18 @@ import sys
 import os
 import json
 import logging
-import subprocess
+import requests
 
 from pyspark.sql import SparkSession
 from pyspark import SparkConf
 from datetime import datetime
 
-try:
-    import requests
-except ImportError:
-    subprocess.check_call(["pip", "install", "requests"])
-    import requests
 
-url = "https://financialmodelingprep.com/api/v3/quote-short/TSLA?apikey=71641ac9883a086f82d5e14f86025c0c"
+url = os.getenv("daily_url")
+
+def make_url(_date):
+    return f"https://financialmodelingprep.com/api/v3/historical-chart/30min/TSLA?from={_date}&to={_date}&apikey=71641ac9883a086f82d5e14f86025c0c"
+
 
 logger = logging.getLogger(__name__)
 logger.setLevel("DEBUG")
@@ -35,7 +34,7 @@ def create_hourly_stock_etl(hdfs_master, hdfs_path, run_time, **kwargs):
     )
     logger.info("The report of " + run_time + " is started to generate!")
 
-    response = requests.get(url).json()
+    response = requests.get(make_url(_date=run_time)).json()
     logger.info(response)
     _df = spark.createDataFrame([line for line in response])
     _df.show()

@@ -129,4 +129,4 @@ dmypy.json
 .pyre/
 
 data
-.envs/.env_vars
+# .envs/.env_vars
