@@ -5,12 +5,44 @@ import logging
 import requests
 
 from pyspark.sql import SparkSession
+from pyspark.sql.functions import unix_timestamp
 from pyspark import SparkConf
 from datetime import datetime
+
+from pyspark.ml import Pipeline
+from pyspark.ml.regression import GBTRegressor
+from pyspark.ml.feature import VectorIndexer
+from pyspark.ml.evaluation import RegressionEvaluator
 
 
 logger = logging.getLogger(__name__)
 logger.setLevel("DEBUG")
+
+
+def develop_pred_model_v2(hdfs_master, hdfs_path, run_time, **kwargs):
+    logger.info(f"PATH: {hdfs_master} {hdfs_path} {run_time}")
+
+    conf = SparkConf()
+    conf.setAppName("Daily Model Stock")
+    spark = (
+        SparkSession.builder.master("spark://app:7077").config(conf=conf).getOrCreate()
+    )
+
+    logger.info("READing from hdfs")
+    _path = os.path.join(*[hdfs_master, hdfs_path, "tesla_stock_data"])
+    _df = spark.read.format("csv").option("header", "true").csv(f"{_path}/*.csv")
+
+    _df.show()
+    _df.na.drop()
+    _df = _df.withColumn("date", unix_timestamp("date"))
+
+    _df.printSchema()
+    _df.orderBy("date", ascending=False)
+    # _df.sort(desc("date"))
+    # _df.orderBy(_df.date.desc())
+    _df.show()
+
+    return "Done!"
 
 
 def develop_pred_model(hdfs_master, hdfs_path, run_time, **kwargs):
