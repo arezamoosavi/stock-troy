@@ -33,11 +33,11 @@ def develop_pred_model_v2(hdfs_master, hdfs_path, run_time, **kwargs):
     _df = spark.read.format("csv").option("header", "true").csv(f"{_path}/*.csv")
 
     _df.show()
-    _df.na.drop()
-    _df = _df.withColumn("date", unix_timestamp("date"))
+    _df = _df.na.drop()
+    _df = _df.withColumn("date", unix_timestamp("date", format="yyyy-MM-dd HH:mm:ss"))
 
     _df.printSchema()
-    _df.orderBy("date", ascending=False)
+    _df = _df.orderBy("date", ascending=True)
     # _df.sort(desc("date"))
     # _df.orderBy(_df.date.desc())
     _df.show()
