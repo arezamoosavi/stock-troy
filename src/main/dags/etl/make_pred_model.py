@@ -10,7 +10,7 @@ from pyspark import SparkConf
 from datetime import datetime
 
 from pyspark.ml import Pipeline
-from pyspark.ml.regression import GBTRegressor
+from pyspark.ml.regression import RandomForestRegressor
 from pyspark.ml.feature import VectorIndexer
 from pyspark.ml.evaluation import RegressionEvaluator
 
@@ -34,13 +34,18 @@ def develop_pred_model_v2(hdfs_master, hdfs_path, run_time, **kwargs):
 
     _df.show()
     _df = _df.na.drop()
-    _df = _df.withColumn("date", unix_timestamp("date", format="yyyy-MM-dd HH:mm:ss"))
+
+    # _df = _df.withColumn("date", unix_timestamp("date", format="yyyy-MM-dd HH:mm:ss"))
+
+    _df = _df.withColumn("close", _df["close"].cast("float").alias("close"))
+    _df = _df.withColumn("open", _df["open"].cast("float").alias("open"))
+    _df = _df.withColumn("date", _df["date"].cast("timestamp").alias("date"))
 
     _df.printSchema()
     _df = _df.orderBy("date", ascending=True)
-    # _df.sort(desc("date"))
-    # _df.orderBy(_df.date.desc())
     _df.show()
+
+    # _df.withColumn("new_column", lag("num", 1, 0).over(w)).show lag(col, count=1, default=None)
 
     return "Done!"
 

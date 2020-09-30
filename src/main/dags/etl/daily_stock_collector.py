@@ -3,13 +3,15 @@ import os
 import json
 import logging
 import requests
+from datetime import datetime
 
+from pyspark.sql.types import FloatType, TimestampType
 from pyspark.sql import SparkSession
 from pyspark import SparkConf
-from datetime import datetime
 
 
 url = os.getenv("daily_url")
+
 
 def make_url(_date):
     return f"https://financialmodelingprep.com/api/v3/historical-chart/30min/TSLA?from={_date}&to={_date}&apikey=71641ac9883a086f82d5e14f86025c0c"
@@ -37,6 +39,11 @@ def create_hourly_stock_etl(hdfs_master, hdfs_path, run_time, **kwargs):
     response = requests.get(make_url(_date=run_time)).json()
     logger.info(response)
     _df = spark.createDataFrame([line for line in response])
+
+    _df = _df.withColumn("close", _df["close"].cast("float").alias("close"))
+    _df = _df.withColumn("open", _df["open"].cast("float").alias("open"))
+    _df = _df.withColumn("date", _df["date"].cast(TimestampType()).alias("date"))
+
     _df.show()
     _df.printSchema()
 
