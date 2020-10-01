@@ -45,6 +45,18 @@ def develop_pred_model_v2(hdfs_master, hdfs_path, run_time, **kwargs):
     _df = _df.orderBy("date", ascending=True)
     _df.show()
 
+
+    logger.info("df to pandas:")
+    pd_df = _df.toPandas()
+    pd_df.dropna(inplace=True)
+    pd_df["date"] = pd_df.to_datetime(pd_df.date)
+    
+    pd_df.sort_values(by=["date"], inplace=True, ascending=True)
+    pd_df.reset_index(inplace=True)
+
+    logger.info("SHAPE is: ")
+    logger.info(pd_df.shape)
+
     # _df.withColumn("new_column", lag("num", 1, 0).over(w)).show lag(col, count=1, default=None)
 
     return "Done!"

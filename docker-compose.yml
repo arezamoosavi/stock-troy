@@ -14,8 +14,8 @@ services:
       - 8080:8080
       - 18080:18080
       - 5050:5050
-    # env_file:
-    #   - ./.envs/.env_vars
+    env_file:
+      - ./.envs/.env_vars
     environment:
       - AIRFLOW__CORE__FERNET_KEY=PeszOD9t6wKNdNONTGh-k4qsYbsGHQ8CSqTQZlqPCDk=
       - AIRFLOW_HOME=/opt/project

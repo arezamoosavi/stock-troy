@@ -5,7 +5,7 @@ from airflow.operators.bash_operator import BashOperator
 from airflow.operators.python_operator import PythonOperator
 
 from dags.etl.daily_stock_collector import create_hourly_stock_etl, say_hi
-from dags.etl.make_pred_model import develop_pred_model, develop_pred_model_v2
+from dags.etl.minutely_stock_collector import create_minuetly_stock_etl
 
 logger = logging.getLogger(__name__)
 logger.setLevel("WARNING")
@@ -17,7 +17,20 @@ args = {
     "provide_context": True,
 }
 
-dag = DAG(
+
+hi_dag = DAG(
+    dag_id="for_say_hi",
+    default_args=args,
+    schedule_interval="@hourly",
+    max_active_runs=1,
+)
+
+run_hi = PythonOperator(task_id="Say_HI", python_callable=say_hi, dag=hi_dag,)
+
+run_hi
+
+
+hourly_dag = DAG(
     dag_id="daily_gather_stock_data",
     default_args=args,
     schedule_interval="@daily",
@@ -33,66 +46,31 @@ run_gather_stock = PythonOperator(
         "hdfs_path": "{{var.value.hdfs_path}}",
         "run_time": "{{yesterday_ds}}",
     },
-    dag=dag,
+    dag=hourly_dag,
 )
 
 run_gather_stock
 
-
-ml_dag = DAG(
-    dag_id="daily_ml_stock_data",
+minutely_dag = DAG(
+    dag_id="minutely_gather_stock_data",
     default_args=args,
-    schedule_interval="@daily",
+    schedule_interval="*/1 * * * *",
     max_active_runs=1,
 )
 
 
-pred_stock_model = PythonOperator(
-    task_id="create_hourly_stock_etl",
-    python_callable=develop_pred_model,
+run_gather_stock_mintuely = PythonOperator(
+    task_id="create_minutely_stock_etl",
+    python_callable=create_minuetly_stock_etl,
     op_kwargs={
         "hdfs_master": "{{var.value.hdfs_master}}",
         "hdfs_path": "{{var.value.hdfs_path}}",
         "run_time": "{{yesterday_ds}}",
     },
-    dag=ml_dag,
+    dag=minutely_dag,
 )
 
-pred_stock_model
-
-
-ml_dagv2 = DAG(
-    dag_id="daily_ml_stock_datav2",
-    default_args=args,
-    schedule_interval="@daily",
-    max_active_runs=1,
-)
-
-
-pred_stock_modelv2 = PythonOperator(
-    task_id="create_hourly_stock_etl",
-    python_callable=develop_pred_model_v2,
-    op_kwargs={
-        "hdfs_master": "{{var.value.hdfs_master}}",
-        "hdfs_path": "{{var.value.hdfs_path}}",
-        "run_time": "{{yesterday_ds}}",
-    },
-    dag=ml_dagv2,
-)
-
-pred_stock_modelv2
-
-
-new_dag = DAG(
-    dag_id="for_say_hi",
-    default_args=args,
-    schedule_interval="@hourly",
-    max_active_runs=1,
-)
-
-run_hi = PythonOperator(task_id="Say_HI", python_callable=say_hi, dag=new_dag,)
-
-run_hi
+run_gather_stock_mintuely
 
 
 # stock_etl = BashOperator(
