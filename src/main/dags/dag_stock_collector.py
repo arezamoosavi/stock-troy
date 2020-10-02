@@ -54,7 +54,7 @@ run_gather_stock
 minutely_dag = DAG(
     dag_id="minutely_gather_stock_data",
     default_args=args,
-    schedule_interval="*/1 * * * *",
+    schedule_interval="*/10 * * * *",
     max_active_runs=1,
 )
 

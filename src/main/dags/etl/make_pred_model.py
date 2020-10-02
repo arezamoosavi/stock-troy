@@ -3,6 +3,10 @@ import os
 import json
 import logging
 import requests
+import io
+
+import tempfile
+import joblib
 
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import unix_timestamp
@@ -13,6 +17,15 @@ from pyspark.ml import Pipeline
 
 from joblib import dump, load
 from sklearn.ensemble import RandomForestRegressor
+
+from utils.minio_connection import MinioClient
+
+try:
+    minio_obj = MinioClient()
+    minio_client = minio_obj.client()
+except Exception as e:
+    print(e)
+
 
 logger = logging.getLogger(__name__)
 logger.setLevel("DEBUG")
@@ -53,10 +66,11 @@ def develop_pred_model_v2(hdfs_master, hdfs_path, run_time, **kwargs):
     pd_df["price_at_20"] = pd_df["price"].shift(20)
 
     pd_df.dropna(inplace=True)
+    pd_df.reset_index(inplace=True)
 
     logger.info("SHAPE is: ")
     logger.info(pd_df.shape)
-    logger.info(pd_df.head(8))
+    logger.info(f"\n {pd_df.head(8)}")
 
     logger.info("DOing ML: ")
     X = pd_df.drop(["price_after_ten",], axis=1)
@@ -65,7 +79,26 @@ def develop_pred_model_v2(hdfs_master, hdfs_path, run_time, **kwargs):
     reg.fit(X, y)
 
     accuracy = float("{0:.2f}".format(reg.score(X, y) * 100))
-    print("\n" * 2, "Test Accuracy is: ", accuracy, "%", "\n" * 2)
+    print("\n" * 2, "Train Accuracy is: ", accuracy, "%", "\n" * 2)
+
+    # WRITE
+    with tempfile.TemporaryFile() as fp:
+        joblib.dump(reg, fp)
+        fp.seek(0)
+        _buffer = io.BytesIO(fp.read())
+        _length = _buffer.getbuffer().nbytes
+        minio_client.put_object(
+            bucket_name="stock",
+            object_name=f"models/tesla.joblib",
+            data=_buffer,
+            length=_length,
+        )
+
+    # READ
+    # with tempfile.TemporaryFile() as fp:
+    #     s3_resource.download_fileobj(Fileobj=fp, Bucket=bucket_name, Key=key)
+    #     fp.seek(0)
+    #     model = joblib.load(fp)
 
     return "Done!"
 
