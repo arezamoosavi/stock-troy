@@ -10,10 +10,9 @@ from pyspark import SparkConf
 from datetime import datetime
 
 from pyspark.ml import Pipeline
-from pyspark.ml.regression import RandomForestRegressor
-from pyspark.ml.feature import VectorIndexer
-from pyspark.ml.evaluation import RegressionEvaluator
 
+from joblib import dump, load
+from sklearn.ensemble import RandomForestRegressor
 
 logger = logging.getLogger(__name__)
 logger.setLevel("DEBUG")
@@ -36,6 +35,7 @@ def develop_pred_model_v2(hdfs_master, hdfs_path, run_time, **kwargs):
     _df = _df.na.drop()
 
     # _df = _df.withColumn("date", unix_timestamp("date", format="yyyy-MM-dd HH:mm:ss"))
+    # _df.withColumn("new_column", lag("num", 1, 0).over(w)).show lag(col, count=1, default=None)
 
     _df = _df.withColumn("price", _df["price"].cast("float").alias("price"))
     _df = _df.withColumn("date", _df["date"].cast("timestamp").alias("date"))
@@ -46,12 +46,26 @@ def develop_pred_model_v2(hdfs_master, hdfs_path, run_time, **kwargs):
 
     logger.info("df to pandas:")
     pd_df = _df.toPandas()
+
+    pd_df.drop(["symbol", "date"], axis=1, inplace=True)
+
+    pd_df["price_after_ten"] = pd_df["price"].shift(-10)
+    pd_df["price_at_20"] = pd_df["price"].shift(20)
+
     pd_df.dropna(inplace=True)
 
     logger.info("SHAPE is: ")
+    logger.info(pd_df.shape)
     logger.info(pd_df.head(8))
 
-    # _df.withColumn("new_column", lag("num", 1, 0).over(w)).show lag(col, count=1, default=None)
+    logger.info("DOing ML: ")
+    X = pd_df.drop(["price_after_ten",], axis=1)
+    y = pd_df["price_after_ten"]
+    reg = RandomForestRegressor(n_estimators=200, random_state=101)
+    reg.fit(X, y)
+
+    accuracy = float("{0:.2f}".format(reg.score(X, y) * 100))
+    print("\n" * 2, "Test Accuracy is: ", accuracy, "%", "\n" * 2)
 
     return "Done!"
 
