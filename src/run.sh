@@ -24,6 +24,9 @@ start-slave.sh spark://app:7077
 sleep 1
 echo "worker started at port 8081 ...."
 
+sleep 1
+echo "worker started at port 8081 ...."
+
 echo "airflow database init ...."
 
 airflow initdb
@@ -32,4 +35,4 @@ sleep 5
 
 echo "airflow app started ...."
 
-airflow webserver -p 5050 & sleep 5 & airflow scheduler
+airflow webserver -p 5050 & sleep 5 & airflow scheduler & sleep 200 & python bokeh_app.py

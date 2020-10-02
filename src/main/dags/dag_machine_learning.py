@@ -4,7 +4,9 @@ from airflow import DAG
 from airflow.operators.bash_operator import BashOperator
 from airflow.operators.python_operator import PythonOperator
 
-from dags.etl.make_pred_model import develop_pred_model, develop_pred_model_v2
+from dags.etl.make_pred_model import develop_pred_model
+from dags.etl.formatting_data import develop_data_model
+
 
 logger = logging.getLogger(__name__)
 logger.setLevel("WARNING")
@@ -39,23 +41,23 @@ pred_stock_model = PythonOperator(
 pred_stock_model
 
 
-ml_dagv2 = DAG(
-    dag_id="daily_ml_stock_datav2",
+format_dag = DAG(
+    dag_id="create_data_model_stock_data",
     default_args=args,
-    schedule_interval="@daily",
+    schedule_interval="*/5 * * * *",
     max_active_runs=1,
 )
 
 
-pred_stock_modelv2 = PythonOperator(
-    task_id="create_hourly_stock_etl",
-    python_callable=develop_pred_model_v2,
+create_data_model = PythonOperator(
+    task_id="create_data_model",
+    python_callable=develop_data_model,
     op_kwargs={
         "hdfs_master": "{{var.value.hdfs_master}}",
         "hdfs_path": "{{var.value.hdfs_path}}",
         "run_time": "{{yesterday_ds}}",
     },
-    dag=ml_dagv2,
+    dag=format_dag,
 )
 
-pred_stock_modelv2
+create_data_model

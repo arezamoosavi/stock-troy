@@ -90,6 +90,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 RUN mkdir -p /opt/project
 COPY ./src/main/dags ./opt/project
 COPY src/airflow.cfg /opt/project/airflow.cfg
+COPY ./src/main/bokeh_app.py ./opt/project/bokeh_app.py
 
 COPY src/run.sh /run.sh
 RUN chmod a+rwx /run.sh

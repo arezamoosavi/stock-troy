@@ -18,3 +18,4 @@ typing_extensions
 configparser<3.5.5
 jinja2<2.11.0
 werkzeug<1.0.0
+bokeh

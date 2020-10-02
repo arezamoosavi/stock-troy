@@ -14,6 +14,7 @@ services:
       - 8080:8080
       - 18080:18080
       - 5050:5050
+      - 5555:5555
     env_file:
       - ./.envs/.env_vars
     environment:
