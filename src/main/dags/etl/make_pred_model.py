@@ -82,6 +82,7 @@ def develop_pred_model_v2(hdfs_master, hdfs_path, run_time, **kwargs):
     print("\n" * 2, "Train Accuracy is: ", accuracy, "%", "\n" * 2)
 
     # WRITE
+    logger.info("Write to minio: ")
     with tempfile.TemporaryFile() as fp:
         joblib.dump(reg, fp)
         fp.seek(0)
@@ -89,16 +90,22 @@ def develop_pred_model_v2(hdfs_master, hdfs_path, run_time, **kwargs):
         _length = _buffer.getbuffer().nbytes
         minio_client.put_object(
             bucket_name="stock",
-            object_name=f"models/tesla.joblib",
+            object_name="models/tesla.joblib",
             data=_buffer,
             length=_length,
         )
 
     # READ
-    # with tempfile.TemporaryFile() as fp:
-    #     s3_resource.download_fileobj(Fileobj=fp, Bucket=bucket_name, Key=key)
-    #     fp.seek(0)
-    #     model = joblib.load(fp)
+    logger.info("Read from minio: ")
+    with tempfile.NamedTemporaryFile() as tmp:
+
+        logger.info(f"model file {tmp.name}")
+        minio_client.fget_object("stock", "models/tesla.joblib", tmp.name)
+        model_pred = joblib.load(tmp.name)
+
+    logger.info("Test with loaded model from minio: ")
+    accuracy = float("{0:.2f}".format(model_pred.score(X, y) * 100))
+    print("\n" * 2, "Train Accuracy is: ", accuracy, "%", "\n" * 2)
 
     return "Done!"
 
