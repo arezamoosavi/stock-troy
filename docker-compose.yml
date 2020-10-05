@@ -1,7 +1,7 @@
 version: "3"
 
 services:
-  app:
+  app: &baseApp
     build:
       context: .
       dockerfile: ./src/Dockerfile
@@ -14,7 +14,6 @@ services:
       - 8080:8080
       - 18080:18080
       - 5050:5050
-      - 5555:5555
     env_file:
       - ./.envs/.env_vars
     environment:
@@ -22,6 +21,11 @@ services:
       - AIRFLOW_HOME=/opt/project
     restart: unless-stopped
     command: sh /run.sh
+  bokeh:
+    <<: *baseApp
+    ports:
+      - 5555:5555
+    command: sh /bokeh_run.sh
   minio:
     image: "bitnami/minio:latest"
     container_name: minio

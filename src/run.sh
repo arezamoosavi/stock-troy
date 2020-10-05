@@ -35,4 +35,4 @@ sleep 5
 
 echo "airflow app started ...."
 
-airflow webserver -p 5050 & sleep 5 & airflow scheduler & sleep 200 & python bokeh_app.py
+airflow webserver -p 5050 & sleep 5 & airflow scheduler

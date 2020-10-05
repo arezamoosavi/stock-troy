@@ -49,6 +49,8 @@ def read_from_hdfs(hdfs_master, hdfs_path):
     _path = os.path.join(*[hdfs_master, hdfs_path, "tesla_pd_data"])
     _df = spark.read.format("csv").option("header", "true").csv(f"{_path}/*.csv")
 
+    logger.info("The data is here!")
+
     _df = _df.na.drop()
 
     _df = _df.withColumn("price", _df["price"].cast("float").alias("price"))
@@ -63,6 +65,8 @@ def read_from_hdfs(hdfs_master, hdfs_path):
     _df = _df.withColumn("date", _df["date"].cast("timestamp").alias("date"))
     _df = _df.orderBy("date", ascending=True)
 
+    logger.info("To pandas is done!")
+
     return _df.toPandas()
 
 
@@ -70,6 +74,9 @@ def get_model():
     with tempfile.NamedTemporaryFile() as tmp:
         logger.info(f"model file {tmp.name}")
         minio_client.fget_object("stock", "models/tesla.joblib", tmp.name)
+
+        logger.info("The model is here!")
+
         return joblib.load(tmp.name)
 
 
@@ -84,9 +91,8 @@ def runner(doc):
         real_df = read_from_hdfs(
             hdfs_master="hdfs://namenode:8020", hdfs_path="stock_data/"
         )
-        # CONVERT TO BOKEH DATASOURCE AND STREAMING
-        n_roll = len(real_df.index)
-        real_data.stream(real_df.to_dict(orient="list"), n_roll)
+
+        logger.info(f"real_df is here! \n {real_df.head()}")
 
         clf = get_model()
 
@@ -100,6 +106,12 @@ def runner(doc):
 
         n_roll_e = len(estimated_df.index)
         estimated_data.stream(estimated_df.to_dict(orient="list"), n_roll_e)
+        n_roll = len(real_df.index)
+        real_data.stream(
+            real_df.loc[:, ["price", "date"]].to_dict(orient="list"), n_roll
+        )
+
+        logger.info("The data is streamed !")
 
     TOOLS = "pan,wheel_zoom,box_zoom,reset,undo,save,hover"
     p = figure(
@@ -157,16 +169,16 @@ def runner(doc):
 
     doc.add_periodic_callback(update, BOKEH_INTERVAL_MS)
     doc.add_root(p)
-    output_file("tesla_stock.html")
-    show(p)
+    # output_file("tesla_stock.html")
+    # show(p)
 
 
 server = Server(
     {"/": runner},
-    address="0.0.0.0",
     port=PORT,
-    allow_websocket_origin=["*"],
-    use_xheaders=True,
+    # address="0.0.0.0",
+    # allow_websocket_origin=["*"],
+    # use_xheaders=True,
 )
 server.start()
 IOLoop.current().start()

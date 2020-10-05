@@ -95,4 +95,8 @@ COPY ./src/main/bokeh_app.py ./opt/project/bokeh_app.py
 COPY src/run.sh /run.sh
 RUN chmod a+rwx /run.sh
 
+COPY src/bokeh_run.sh /bokeh_run.sh
+RUN chmod a+rwx /bokeh_run.sh
+
+
 WORKDIR /opt/project
