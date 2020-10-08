@@ -40,12 +40,7 @@ BOKEH_INTERVAL_MS = 250000
 
 def read_from_hdfs(hdfs_master, hdfs_path):
 
-    conf = SparkConf()
-    conf.setAppName("Daily Model Stock")
-    spark = (
-        SparkSession.builder.master("spark://app:7077").config(conf=conf).getOrCreate()
-    )
-
+    spark = SparkSession.builder.master("local").getOrCreate()
     _path = os.path.join(*[hdfs_master, hdfs_path, "tesla_pd_data"])
     _df = spark.read.format("csv").option("header", "true").csv(f"{_path}/*.csv")
 
